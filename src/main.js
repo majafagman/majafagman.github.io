@@ -18,14 +18,27 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 // Scen & Kamera
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50, sizes.width / sizes.height, 0.1, 100);
-camera.position.set(0,5,10);
+camera.position.set(0, 5, 10);
 scene.add(camera);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.autoRotate = false; // Inaktivera autorotation om det används
 controls.enablePan = false; // Inaktivera panorering om det inte behövs
+controls.target.set(0, 5, -7); // Sätt kamerans mål för att fokusera på scenen
+
+// Begränsa vertikal rotation (upp och ner)
+controls.minPolarAngle = Math.PI / 4; // Minsta vinkel (t.ex. 45 grader)
+controls.maxPolarAngle = Math.PI / 1.7; // Maximal vinkel (t.ex. 90 grader)
+
+// Begränsa horisontell rotation (vänster och höger)
+controls.minAzimuthAngle = -Math.PI / 4; // Minsta vinkel (t.ex. -45 grader)
+controls.maxAzimuthAngle = Math.PI / 4;  // Maximal vinkel (t.ex. 45 grader)
+
+controls.maxDistance = 40; // Maximal zoom-out avstånd
+controls.minDistance = 5; // Minimal zoom-in avstånd
+
 controls.update();
-controls.target.set(0,5,-7); // Sätt kamerans mål för att fokusera på scenen
+
 
 // Ljus
 scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.5));
@@ -73,8 +86,6 @@ VideoElement.addEventListener("canplay", () => {
   VideoElement.play().catch((error) => console.error("❌ Videofel:", error));
 });
 
-document.body.appendChild(VideoElement); // För test
-
 // Modell
 const loader = new GLTFLoader();
 const dracoLoader = new DRACOLoader();
@@ -84,13 +95,19 @@ loader.setDRACOLoader(dracoLoader);
 const clickableGroups = {};
 let mixer;
 const clickableNames = [
-  "Monster", "Suitcase", "Screen", "Screen_body", "Macbook", "Chair",
-  "Headphones", "Hickap", "Stars_01", "Stars_02", "Stars_03"
+  "Monster", "Suitcase_1", "Screen", "Screen_body", "Macbook", "Chair",
+  "Headphones_2", "Hickap_1", "Stars_01", "Stars_02", "Stars_03"
+];
+const hoverableNames = [
+  "Monster", "Suitcase_1", "Screen", "Screen_body", "Macbook", "Chair",
+  "Headphones_2", "Hickap_1", "Stars_01", "Stars_02", "Stars_03"
 ];
 
-loader.load("/models/Scene_25.glb", (glb) => {
+loader.load("/models/Scene_30.glb", (glb) => {
   const model = glb.scene;
+  glb.scene.scale.set(1,1,1);
   scene.add(model);
+  
 
   model.traverse((child) => {
     if (child.isMesh) {
@@ -124,13 +141,13 @@ loader.load("/models/Scene_25.glb", (glb) => {
         while (top.parent && top.parent.type !== "Scene") {
           top = top.parent;
         }
-      
+
         clickableGroups[child.name] = top;
         top.scale.set(1, 1, 1); // startskala
-      
+
         console.log("✅ Klickbar:", top.name);
       }
-      
+
     }
   });
 
@@ -151,11 +168,12 @@ let hoveredObject = null;
 window.addEventListener("mousemove", (event) => {
   mouse.x = (event.clientX / sizes.width) * 2 - 1;
   mouse.y = -(event.clientY / sizes.height) * 2 + 1;
-  console.log("Musposition:", mouse.x, mouse.y);
+  //console.log("Musrörelse på canvas: ", mouse.x, mouse.y);
 });
 
 canvas.addEventListener("click", () => {
-  raycaster.setFromCamera(mouse, camera);
+  console.log("Klick på canvas");
+  //raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(scene.children, true);
 
   for (let intersect of intersects) {
@@ -163,17 +181,77 @@ canvas.addEventListener("click", () => {
     if (clickableNames.includes(name)) {
       console.log(`🖱️ Klickade på: ${name}`);
       if (["Monster", "Monster_glass"].includes(name)) {
-        window.location.href = "https://google.com";
+        window.location.href = "/src/Monster.html";
+        
       } else if (name === "Chair") {
-        window.location.href = "https://example.com/chair";
+        window.location.href = "/src/Chair.html";
       }
+      else if (name === "Suitcase_1") {
+        window.location.href = "/src/Mimic.html";
+      }
+      else if (name === "Macbook") {
+        window.location.href = "/src/Macbook.html";
+      }
+      else if (name === "Screen") {
+        window.location.href = "/src/Screen.html";
+      }
+      else if (name === "Headphones") {
+        window.location.href = "/src/Headphones.html";
+      }
+      else if (name === "Hickap_1") {
+        window.location.href = "/src/Hickap.html";
+      }
+
       break;
     }
   }
 });
 
+//let hoveredObject = null; // Track the currently hovered object
+
+canvas.addEventListener("mousemove", (event) => {
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(scene.children, true);
+
+  let foundHover = null;
+
+  for (let intersect of intersects) {
+    const name = intersect.object.name;
+    const scale = intersect.object.scale;
+
+    console.dir(name);
+    if (hoverableNames.includes(name)) {
+      foundHover = intersect.object;
+      break;
+    }
+  }
+
+  if (hoveredObject !== foundHover) {
+    // Reset the scale of the previously hovered object
+    if (hoveredObject) {
+      gsap.to(hoveredObject.scale, {
+        x: 1,
+        y: 1,
+        z: 1,
+        duration: 0.3,
+        overwrite: true,
+      });
+    } else {
+      gsap.to(foundHover.scale, {
+        x: 1.5,
+        y: 1.5,
+        z: 1.5,
+        duration: 0.3,
+        overwrite: true,
+      });
+    }
+    hoveredObject = foundHover; // Update the currently hovered object
+  }
+});
+
 // Fönsterstorlek
 window.addEventListener("resize", () => {
+  console.log("Fönsterstorlek ändrad");
   sizes.width = window.innerWidth;
   sizes.height = window.innerHeight;
   camera.aspect = sizes.width / sizes.height;
@@ -187,52 +265,53 @@ const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
-  
+
   const delta = clock.getDelta();
   if (mixer) mixer.update(delta);
   if (VideoTexture) VideoTexture.needsUpdate = true;
 
-  console.log("Kör raycaster..."); // Logga för att verifiera
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(scene.children, true);
-
-  let foundHover = null;
-
-  for (let intersect of intersects) {
-    let target = intersect.object;
-    while (target && target.type !== "Scene") {
-      if (clickableNames.includes(target.name) && clickableGroups[target.name]) {
-        foundHover = clickableGroups[target.name];
-        break;
+  /*
+    let foundHover = null;
+  
+    for (let intersect of intersects) {
+      let target = intersect.object;
+      while (target && target.type !== "Scene") {
+        if (clickableNames.includes(target.name) && clickableGroups[target.name]) {
+          foundHover = clickableGroups[target.name];
+          break;
+        }
+        target = target.parent;
       }
-      target = target.parent;
+      if (foundHover) break;
     }
-    if (foundHover) break;
-  }
-
-  if (hoveredObject !== foundHover) {
-    if (hoveredObject) {
-      gsap.to(hoveredObject.scale, {
-        x: 1,
-        y: 1,
-        z: 1,
-        duration: 0.3,
-        overwrite: true,
-      });
-    }
-
-    if (foundHover) {
-      gsap.to(foundHover.scale, {
-        x: 1.2,
-        y: 1.2,
-        z: 1.2,
-        duration: 0.3,
-        overwrite: true,
-      });
-    }
-
-    hoveredObject = foundHover;
-  }
+  
+    console.log(foundHover)
+  
+    if (hoveredObject !== foundHover) {
+      if (hoveredObject) {
+        gsap.to(hoveredObject.scale, {
+          x: 1,
+          y: 1,
+          z: 1,
+          duration: 0.3,
+          overwrite: true,
+        });
+      }
+  
+      if (foundHover) {
+        gsap.to(foundHover.scale, {
+          x: 1.2,
+          y: 1.2,
+          z: 1.2,
+          duration: 0.3,
+          overwrite: true,
+        });
+      }
+  
+      hoveredObject = foundHover;
+    }*/
 
 
 
