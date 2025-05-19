@@ -9,11 +9,25 @@ import { gsap } from "gsap";
 // Canvas & Renderer
 const canvas = document.querySelector("#experience-canvas");
 const sizes = { width: window.innerWidth, height: window.innerHeight };
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true, alpha: true });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x000000, 0); // Gör bakgrunden transparent
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+// Funktion för att justera canvasens position och storlek
+function adjustCanvas() {
+  const headerHeight = document.getElementById("main-header").offsetHeight;
+  const canvas = document.getElementById("experience-canvas");
+
+  canvas.style.top = `${headerHeight}px`;
+  canvas.style.height = `calc(100vh - ${headerHeight}px)`;
+}
+
+// Kör funktionen vid start och när fönstret ändras
+window.addEventListener("resize", adjustCanvas);
+adjustCanvas();
 
 // Scen & Kamera
 const scene = new THREE.Scene();
@@ -36,16 +50,18 @@ controls.maxAzimuthAngle = Math.PI / 4;  // Maximal vinkel (t.ex. 45 grader)
 
 controls.maxDistance = 40; // Maximal zoom-out avstånd
 controls.minDistance = 5; // Minimal zoom-in avstånd
-
+controls.enablePan = true; // Tillåt panorering
 controls.update();
 
 
 // Ljus
-scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.5));
-const dirLight = new THREE.DirectionalLight(0xffffff, 3);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
+const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
 dirLight.position.set(10, 10, 5);
 dirLight.castShadow = true;
-dirLight.shadow.mapSize.set(1024, 1024);
+dirLight.receiveShadow = true; 
+dirLight.shadow.mapSize.set(512, 512);
+dirLight.shadow.bias = -0.005;
 scene.add(dirLight);
 
 // Miljöbakgrund
@@ -95,15 +111,15 @@ loader.setDRACOLoader(dracoLoader);
 const clickableGroups = {};
 let mixer;
 const clickableNames = [
-  "Monster", "Suitcase_1", "Screen", "Screen_body", "Macbook", "Chair",
-  "Headphones_2", "Hickap_1", "Stars_01", "Stars_02", "Stars_03"
+  "Monster", "Suitcase", "Screen", "Screen_body", "Macbook", "Chair",
+  "Headphones_2", "Hickap_1", "Stars_01", "Stars_02", "Stars_03", "Lynk", "Filmic", "Mail", "Behance001", "Instagram", "LinkedIn"
 ];
 const hoverableNames = [
-  "Monster", "Suitcase_1", "Screen", "Screen_body", "Macbook", "Chair",
-  "Headphones_2", "Hickap_1", "Stars_01", "Stars_02", "Stars_03"
+  "Monster", "Suitcase", "Screen", "Screen_body", "Macbook", "Chair",
+  "Headphones_2", "Hickap_1", "Stars_01", "Stars_02", "Stars_03", "Lynk", "Filmic", "Mail", "Behance001", "Instagram", "LinkedIn"
 ];
 
-loader.load("/models/Scene_30.glb", (glb) => {
+loader.load("/models/Scene_31.glb", (glb) => {
   const model = glb.scene;
   glb.scene.scale.set(1,1,1);
   scene.add(model);
@@ -119,7 +135,7 @@ loader.load("/models/Scene_30.glb", (glb) => {
         envMapIntensity: 1,
         color: 0xffffff,
         metalness: 0,
-        roughness: 0.4,
+        roughness: 0.05,
         side: THREE.DoubleSide,
       });
 
@@ -186,26 +202,44 @@ canvas.addEventListener("click", () => {
       } else if (name === "Chair") {
         window.location.href = "/src/Chair.html";
       }
-      else if (name === "Suitcase_1") {
+      else if (name === "Suitcase") {
         window.location.href = "/src/Mimic.html";
       }
-      else if (name === "Macbook") {
+      else if (name === "Macbook_1, Mackbook_2") {
         window.location.href = "/src/Macbook.html";
       }
       else if (name === "Screen") {
-        window.location.href = "/src/Screen.html";
+        window.location.href = "/src/Showreel.html";
       }
-      else if (name === "Headphones") {
+      else if (name === "Headphones_2") {
         window.location.href = "/src/Headphones.html";
       }
       else if (name === "Hickap_1") {
         window.location.href = "/src/Hickap.html";
       }
-
+      else if (name === "Instagram") {
+        window.location.href = "https://www.instagram.com/majafagman3d/";
+      }
+      else if (name === "LinkedIn") {
+        window.location.href = "https://www.linkedin.com/in/maja-fagman-5b107129a/";
+      }
+      else if (name === "Behance001") {
+        window.location.href = "https://www.behance.net/majafagman/projects#";
+      }
+      else if (name === "Mail") {
+        window.location.href = "mailto:majafag04@gmail.com";
+      }
+      else if (name === "Filmic") {
+        window.location.href = "https://www.instagram.com/majafagman3d/";
+      }
+      else if (name === "Lynk") {
+        window.location.href = "https://www.instagram.com/majafagman3d/";
+      }
       break;
     }
   }
 });
+
 
 //let hoveredObject = null; // Track the currently hovered object
 
@@ -217,35 +251,81 @@ canvas.addEventListener("mousemove", (event) => {
 
   for (let intersect of intersects) {
     const name = intersect.object.name;
-    const scale = intersect.object.scale;
 
-    console.dir(name);
-    if (hoverableNames.includes(name)) {
+    if (name === "Screen" || name === "Screen_body") {
       foundHover = intersect.object;
-      break;
+
+      // Hämta både Screen och Screen_body
+      const screen = scene.getObjectByName("Screen");
+      const screenBody = scene.getObjectByName("Screen_body");
+
+      // Skala båda objekten
+      gsap.to(screen.scale, {
+        x: 1.2,
+        y: 1.2,
+        z: 1.2,
+        duration: 0.3,
+        overwrite: true,
+      });
+
+      gsap.to(screenBody.scale, {
+        x: 1.2,
+        y: 1.2,
+        z: 1.2,
+        duration: 0.3,
+        overwrite: true,
+      });
+    } else if (hoverableNames.includes(name)) {
+      // Generell skalning för andra objekt
+      foundHover = intersect.object;
+
+      gsap.to(foundHover.scale, {
+        x: 1.2,
+        y: 1.2,
+        z: 1.2,
+        duration: 0.3,
+        overwrite: true,
+      });
     }
+
+    if (foundHover) break;
   }
 
   if (hoveredObject !== foundHover) {
-    // Reset the scale of the previously hovered object
+    // Återställ skalan för det tidigare hovrade objektet
     if (hoveredObject) {
-      gsap.to(hoveredObject.scale, {
-        x: 1,
-        y: 1,
-        z: 1,
-        duration: 0.3,
-        overwrite: true,
-      });
-    } else {
-      gsap.to(foundHover.scale, {
-        x: 1.5,
-        y: 1.5,
-        z: 1.5,
-        duration: 0.3,
-        overwrite: true,
-      });
+      if (hoveredObject.name === "Screen" || hoveredObject.name === "Screen_body") {
+        const screen = scene.getObjectByName("Screen");
+        const screenBody = scene.getObjectByName("Screen_body");
+
+        gsap.to(screen.scale, {
+          x: 1,
+          y: 1,
+          z: 1,
+          duration: 0.3,
+          overwrite: true,
+        });
+
+        gsap.to(screenBody.scale, {
+          x: 1,
+          y: 1,
+          z: 1,
+          duration: 0.3,
+          overwrite: true,
+        });
+      } else {
+        // Återställ skalan för andra objekt
+        gsap.to(hoveredObject.scale, {
+          x: 1,
+          y: 1,
+          z: 1,
+          duration: 0.3,
+          overwrite: true,
+        });
+      }
     }
-    hoveredObject = foundHover; // Update the currently hovered object
+
+    hoveredObject = foundHover; // Uppdatera det aktuella hovrade objektet
   }
 });
 

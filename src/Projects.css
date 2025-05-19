@@ -11,9 +11,43 @@
 
   
   body {
+    margin-top: 50px;
     margin: 20;
     font-family: "Raleway", sans-serif;
     background: #FEFCFA;
+  }
+  /* Styla headern */
+  #main-header {
+    position: fixed; /* Gör headern fast högst upp */
+    top: 0;
+    left: 0;
+    width: 100%; /* Gör headern lika bred som fönstret */
+    background-color: rgba(254, 252, 250, 0.5); /* Halvtransparent svart bakgrund */
+    padding: 10px 20px; /* Lägg till lite padding */
+    z-index: 10; /* Se till att headern ligger ovanpå Three.js-renderingen */
+  
+    font-family: 'Raleway', sans-serif; /* Använd samma font som resten av projektet */
+  }
+
+
+  #header-logo {
+    height:70px; /* Justera höjden på logotypen */
+    width: auto; /* Bevara proportionerna */
+  }
+
+  #close-button {
+    position: absolute;
+    top: 10px; /* Placera krysset nära toppen av headern */
+    right: 20px; /* Placera krysset nära högerkanten */
+    font-size: 50px; /* Gör krysset större */
+    color: black; /* Färg på krysset */
+    text-decoration: none; /* Ta bort understrykning */
+   
+    cursor: pointer; /* Ändra muspekaren till en hand */
+  }
+  
+  #close-button:hover {
+    color: rgba(225, 77, 106); /* Ändra färg vid hovring för att indikera interaktivitet */
   }
   
   .grid-container {
@@ -29,6 +63,10 @@
     grid-row: 1;
   }
   
+  .header2 {
+    grid-column: 2;
+  }
+  
   .video1 {
     grid-column: 1;
     grid-row: 2;
@@ -38,6 +76,12 @@
   .video2 {
     grid-column: 1; /* Behåll samma bredd */
     grid-row: 2; /* Placera den på andra raden */
+    height:auto;
+  }
+
+  .video2 {
+    grid-column: 1; /* Behåll samma bredd */
+    grid-row: 3; /* Placera den på andra raden */
     height:auto;
   }
 
@@ -90,4 +134,106 @@
   .text3 {
     grid-column: 1; /* Samma kolumn som den övre bilden */
     grid-row: 5;
+  }
+
+  .sh_video1 {
+    grid-column: 2; /* Samma kolumn som den övre bilden */
+    grid-row: 1;
+    height: 150%;
+
+  }
+
+  .sh_header2 {
+    grid-column: 1; /* Samma kolumn som den övre bilden */
+    grid-row: 2;
+  }
+
+  .sh_video2 {
+    grid-column: 1; /* Samma kolumn som den övre bilden */
+    grid-row: 3;
+  }
+  .sh_text2 {
+    grid-column: 2; /* Samma kolumn som den övre bilden */
+    grid-row: 3;
+  }
+
+  .sh_media2 {
+    grid-column: 2; 
+    grid-row: 4; 
+    height:fit-content;
+  }
+
+  .sh_video3 {
+    grid-column: 1; 
+    grid-row: 5;
+  }
+
+.sh_media3 {
+    grid-column: 1; 
+    grid-row: 8; 
+    margin-top: -80%;
+  }
+
+  .sh_video4 {
+    grid-column: 2; 
+    grid-row: 7; 
+  }
+
+  .sh_text3 {
+    grid-column: 2; 
+    grid-row: 5; 
+  }
+
+  .sh_text4 {
+    grid-column: 1; 
+    grid-row: 7; 
+  }
+
+  .sh_video5 {
+    grid-column: 2; 
+    grid-row: 8; 
+  }
+  .sh_text5 {
+    grid-column: 2; 
+    grid-row: 9; 
+  }
+
+  .sh_media4 {
+    grid-column: 1; 
+    grid-row: 9; 
+  }
+
+  .sh_media5 {
+    grid-column: 2; 
+    grid-row: 10; 
+    margin-top: -30%;
+  }
+
+  .sh_text6 {
+    grid-column: 1; 
+    grid-row: 10; 
+  }
+
+  .sh_media6 {
+    grid-column: 1; 
+    grid-row: 11; 
+    margin-top: -140%;
+  }
+
+  .sh_media7 {
+    grid-column: 2; 
+    grid-row: 12; 
+    margin-top: -40%;
+  }
+
+  .sh_text7{
+    grid-column: 1; 
+    grid-row: 12; 
+    margin-top: -40%;
+  }
+
+  .sh_media8 {
+    grid-column: 1; 
+    grid-row: 13; 
+    margin-top: -50%;
   }

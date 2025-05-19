@@ -22,15 +22,35 @@
   left: 0;
   overflow: hidden;
   z-index: 1000;
-
-  #experience-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    pointer-events: auto;
-  }
 }
 
+  #main-header {
+    position: fixed; /* Gör headern fast högst upp */
+    top: 0;
+    left: 0;
+    width: 100%; /* Gör headern lika bred som fönstret */
+    background-color: rgba(254, 252, 250, 0.2); /* Halvtransparent svart bakgrund */
+    padding: 10px 20px; /* Lägg till lite padding */
+    z-index: 10; /* Se till att headern ligger ovanpå Three.js-renderingen */
+  
+    font-family: 'Raleway', sans-serif; /* Använd samma font som resten av projektet */
+  }
+
+
+  #header-logo {
+    height:70px; /* Justera höjden på logotypen */
+    width: auto; /* Bevara proportionerna */
+  }
+  
+  #experience-canvas {
+    display: block;
+    position: fixed;
+    top: 60px; /* Flytta ner canvasen så att den inte överlappar headern */
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 60px); /* Justera höjden för att ta hänsyn till headerns höjd */
+    z-index: 1;
+  }
 
 
 
