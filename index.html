@@ -4,12 +4,19 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png+xml" href="/public/images/Logga_MF.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css">
     <title>Vite App</title>
   </head>
   <body>
     <header id="main-header">
       <img src="/public/images/Logga_MF.png" alt="Logotyp" id="header-logo" />
     </header>
+    <div id="modal" class="modal hidden">
+      <div class="modal-content">
+        <iframe id="modal-iframe" src="" frameborder="0"></iframe>
+        <button id="close-modal">&times;</button>
+      </div>
+    </div>
     <div id="app"></div>
 
     <div id="experience">

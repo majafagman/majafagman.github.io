@@ -42,15 +42,32 @@ controls.target.set(0, 5, -7); // Sätt kamerans mål för att fokusera på scen
 
 // Begränsa vertikal rotation (upp och ner)
 controls.minPolarAngle = Math.PI / 4; // Minsta vinkel (t.ex. 45 grader)
-controls.maxPolarAngle = Math.PI / 1.7; // Maximal vinkel (t.ex. 90 grader)
+controls.maxPolarAngle = Math.PI / 1.9; // Maximal vinkel (t.ex. 90 grader)
 
 // Begränsa horisontell rotation (vänster och höger)
 controls.minAzimuthAngle = -Math.PI / 4; // Minsta vinkel (t.ex. -45 grader)
 controls.maxAzimuthAngle = Math.PI / 4;  // Maximal vinkel (t.ex. 45 grader)
 
-controls.maxDistance = 40; // Maximal zoom-out avstånd
+controls.maxDistance = 30; // Maximal zoom-out avstånd
 controls.minDistance = 5; // Minimal zoom-in avstånd
 controls.enablePan = true; // Tillåt panorering
+
+// Definiera gränser för panorering
+const panLimits = {
+  minX: -5, // Minsta X-värde
+  maxX: 5,  // Maximal X-värde
+  minY: 3,  // Minsta Y-värde
+  maxY: 7,  // Maximal Y-värde
+  minZ: -5, // Minsta Z-värde
+  maxZ: 5,  // Maximal Z-värde
+};
+
+// Funktion för att begränsa panorering
+function limitPan() {
+  controls.target.x = Math.max(panLimits.minX, Math.min(panLimits.maxX, controls.target.x));
+  controls.target.y = Math.max(panLimits.minY, Math.min(panLimits.maxY, controls.target.y));
+  controls.target.z = Math.max(panLimits.minZ, Math.min(panLimits.maxZ, controls.target.z));
+}
 controls.update();
 
 
@@ -78,7 +95,7 @@ tex.colorSpace = THREE.SRGBColorSpace;
 
 // Video
 const VideoElement = document.createElement("video");
-VideoElement.src = "/videos/Showreel_15sek.mp4";
+VideoElement.src = "/videos/Showreel_15.mp4";
 VideoElement.loop = true;
 VideoElement.muted = true;
 VideoElement.playsInline = true;
@@ -96,10 +113,15 @@ VideoElement.addEventListener("canplay", () => {
   scene.traverse((child) => {
     if (child.isMesh && child.name === "Screen") {
       child.material = new THREE.MeshBasicMaterial({ map: VideoTexture, side: THREE.DoubleSide });
+      console.log("✅ Material uppdaterat för Screen.");
     }
   });
 
-  VideoElement.play().catch((error) => console.error("❌ Videofel:", error));
+  VideoElement.play().then(() => {
+    console.log("✅ Videon spelas.");
+  }).catch((error) => {
+    console.error("❌ Videofel:", error);
+  });
 });
 
 // Modell
@@ -112,14 +134,14 @@ const clickableGroups = {};
 let mixer;
 const clickableNames = [
   "Monster", "Suitcase", "Screen", "Screen_body", "Macbook", "Chair",
-  "Headphones_2", "Hickap_1", "Stars_01", "Stars_02", "Stars_03", "Lynk", "Filmic", "Mail", "Behance001", "Instagram", "LinkedIn"
+  "Headphones_2", "Hickap", "Hickap_glass", "Stars_01", "Stars_02", "Stars_03", "Lynk", "Filmic", "Mail", "Behance001", "Instagram", "LinkedIn", "Cube032", "Cube033"
 ];
 const hoverableNames = [
   "Monster", "Suitcase", "Screen", "Screen_body", "Macbook", "Chair",
-  "Headphones_2", "Hickap_1", "Stars_01", "Stars_02", "Stars_03", "Lynk", "Filmic", "Mail", "Behance001", "Instagram", "LinkedIn"
+  "Headphones_2", "Hickap", "Hickap_glass", "Stars_01", "Stars_02", "Stars_03", "Lynk", "Filmic", "Mail", "Behance001", "Instagram", "LinkedIn"
 ];
 
-loader.load("/models/Scene_31.glb", (glb) => {
+loader.load("/models/Scene_34.glb", (glb) => {
   const model = glb.scene;
   glb.scene.scale.set(1,1,1);
   scene.add(model);
@@ -135,7 +157,7 @@ loader.load("/models/Scene_31.glb", (glb) => {
         envMapIntensity: 1,
         color: 0xffffff,
         metalness: 0,
-        roughness: 0.05,
+        roughness: 0.2,
         side: THREE.DoubleSide,
       });
 
@@ -188,56 +210,70 @@ window.addEventListener("mousemove", (event) => {
 });
 
 canvas.addEventListener("click", () => {
-  console.log("Klick på canvas");
-  //raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(scene.children, true);
 
   for (let intersect of intersects) {
     const name = intersect.object.name;
     if (clickableNames.includes(name)) {
       console.log(`🖱️ Klickade på: ${name}`);
+      let modalSrc = "";
+
+         // Hantera externa länkar
+         if (name === "Instagram") {
+          window.open("https://www.instagram.com/majafagman3d/?next=%2F", "_blank");
+        } else if (name === "Behance001") {
+          window.open("https://www.behance.net/majafagman/projects", "_blank");
+        } else if (name === "LinkedIn") {
+          window.open("https://www.linkedin.com/in/maja-fagman-5b107129a/", "_blank");
+        } else if (name === "Mail") {
+          window.location.href = "mailto:majafag04@gmail.com";
+        }
+  
+        // Hantera modaler för andra objekt
+
       if (["Monster", "Monster_glass"].includes(name)) {
-        window.location.href = "/src/Monster.html";
-        
+        modalSrc = "/src/Monster.html";
       } else if (name === "Chair") {
-        window.location.href = "/src/Chair.html";
+        modalSrc = "/src/Chair.html";
+      } else if (name === "Suitcase") {
+        modalSrc = "/src/Mimic.html";
+      } else if (name === "Screen") {
+        modalSrc = "/src/Showreel.html";
+      } else if (name === "Headphones_2") {
+        modalSrc = "/src/Headphones.html";
+      } else if (["Hickap", "Hickap_glass"].includes(name)) {
+        modalSrc = "/src/Hickap.html";
+      } else if (["Cube032", "Cube033"].includes(name)) {
+        modalSrc = "/src/CV.html";
+      }else if (["Filmic"].includes(name)) {
+        modalSrc = "/src/Filmic.html";
+      }else if (["Lynk"].includes(name)) {
+        modalSrc = "/src/Lynk.html";
       }
-      else if (name === "Suitcase") {
-        window.location.href = "/src/Mimic.html";
-      }
-      else if (name === "Macbook_1, Mackbook_2") {
-        window.location.href = "/src/Macbook.html";
-      }
-      else if (name === "Screen") {
-        window.location.href = "/src/Showreel.html";
-      }
-      else if (name === "Headphones_2") {
-        window.location.href = "/src/Headphones.html";
-      }
-      else if (name === "Hickap_1") {
-        window.location.href = "/src/Hickap.html";
-      }
-      else if (name === "Instagram") {
-        window.location.href = "https://www.instagram.com/majafagman3d/";
-      }
-      else if (name === "LinkedIn") {
-        window.location.href = "https://www.linkedin.com/in/maja-fagman-5b107129a/";
-      }
-      else if (name === "Behance001") {
-        window.location.href = "https://www.behance.net/majafagman/projects#";
-      }
-      else if (name === "Mail") {
-        window.location.href = "mailto:majafag04@gmail.com";
-      }
-      else if (name === "Filmic") {
-        window.location.href = "https://www.instagram.com/majafagman3d/";
-      }
-      else if (name === "Lynk") {
-        window.location.href = "https://www.instagram.com/majafagman3d/";
+      
+
+      if (modalSrc) {
+        openModal(modalSrc);
       }
       break;
     }
   }
+});
+
+// Funktion för att öppna modalen
+function openModal(src) {
+  const modal = document.getElementById("modal");
+  const iframe = document.getElementById("modal-iframe");
+  iframe.src = src;
+  modal.classList.remove("hidden");
+}
+
+// Funktion för att stänga modalen
+document.getElementById("close-modal").addEventListener("click", () => {
+  const modal = document.getElementById("modal");
+  const iframe = document.getElementById("modal-iframe");
+  iframe.src = ""; // Rensa iframe-källan
+  modal.classList.add("hidden");
 });
 
 
@@ -251,6 +287,8 @@ canvas.addEventListener("mousemove", (event) => {
 
   for (let intersect of intersects) {
     const name = intersect.object.name;
+
+    console.log("Hovrar över objekt:", name);
 
     if (name === "Screen" || name === "Screen_body") {
       foundHover = intersect.object;
@@ -275,17 +313,45 @@ canvas.addEventListener("mousemove", (event) => {
         duration: 0.3,
         overwrite: true,
       });
-    } else if (hoverableNames.includes(name)) {
-      // Generell skalning för andra objekt
+      
+    } else if (name === "Hickap" || name === "Hickap_glass") {
       foundHover = intersect.object;
 
-      gsap.to(foundHover.scale, {
+      // Hämta både Screen och Screen_body
+      const hickap = scene.getObjectByName("Hickap");
+      const hickapGlass = scene.getObjectByName("Hickap_glass");
+
+      // Skala båda objekten
+      gsap.to(hickap.scale, {
         x: 1.2,
         y: 1.2,
         z: 1.2,
         duration: 0.3,
         overwrite: true,
       });
+
+      gsap.to(hickapGlass.scale, {
+        x: 1.2,
+        y: 1.2,
+        z: 1.2,
+        duration: 0.3,
+        overwrite: true,
+      });
+    
+    } else if (name === "Monster" || name === "Monster_glass") {
+      foundHover = intersect.object;
+      const monster = scene.getObjectByName("Monster");
+      const monsterGlass = scene.getObjectByName("Monster_glass");
+
+      scaleObject(monsterGlass, "zoom");
+
+      scaleObject(monster, "zoom");
+    
+    }else if (hoverableNames.includes(name)) {
+      // Generell skalning för andra objekt
+      foundHover = intersect.object;
+
+      scaleObject(foundHover, "zoom");
     }
 
     if (foundHover) break;
@@ -298,36 +364,38 @@ canvas.addEventListener("mousemove", (event) => {
         const screen = scene.getObjectByName("Screen");
         const screenBody = scene.getObjectByName("Screen_body");
 
-        gsap.to(screen.scale, {
-          x: 1,
-          y: 1,
-          z: 1,
-          duration: 0.3,
-          overwrite: true,
-        });
-
-        gsap.to(screenBody.scale, {
-          x: 1,
-          y: 1,
-          z: 1,
-          duration: 0.3,
-          overwrite: true,
-        });
+        scaleObject(screen, "reset");
+        scaleObject(screenBody, "reset");
       } else {
-        // Återställ skalan för andra objekt
-        gsap.to(hoveredObject.scale, {
-          x: 1,
-          y: 1,
-          z: 1,
-          duration: 0.3,
-          overwrite: true,
-        });
+        scaleObject(hoveredObject, "reset");
       }
     }
 
     hoveredObject = foundHover; // Uppdatera det aktuella hovrade objektet
   }
 });
+
+function scaleObject(object, operation) {
+  if (object) {
+    if (operation === "reset") {
+      var scaleX = 1;
+      var scaleY = 1;
+      var scaleZ = 1;
+    } else {
+      var scaleX = 1.2;
+      var scaleY = 1.2;
+      var scaleZ = 1.2;
+    }
+
+    gsap.to(object.scale, {
+      x: scaleX,
+      y: scaleY,
+      z: scaleZ,
+      duration: 0.3,
+      overwrite: true,
+    });
+  }
+}
 
 // Fönsterstorlek
 window.addEventListener("resize", () => {
@@ -348,52 +416,15 @@ function animate() {
 
   const delta = clock.getDelta();
   if (mixer) mixer.update(delta);
-  if (VideoTexture) VideoTexture.needsUpdate = true;
+  
+   // Uppdatera videoteksturen
+   if (VideoTexture) VideoTexture.needsUpdate = true;
+
+   // Begränsa panorering
+   limitPan();
 
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(scene.children, true);
-  /*
-    let foundHover = null;
-  
-    for (let intersect of intersects) {
-      let target = intersect.object;
-      while (target && target.type !== "Scene") {
-        if (clickableNames.includes(target.name) && clickableGroups[target.name]) {
-          foundHover = clickableGroups[target.name];
-          break;
-        }
-        target = target.parent;
-      }
-      if (foundHover) break;
-    }
-  
-    console.log(foundHover)
-  
-    if (hoveredObject !== foundHover) {
-      if (hoveredObject) {
-        gsap.to(hoveredObject.scale, {
-          x: 1,
-          y: 1,
-          z: 1,
-          duration: 0.3,
-          overwrite: true,
-        });
-      }
-  
-      if (foundHover) {
-        gsap.to(foundHover.scale, {
-          x: 1.2,
-          y: 1.2,
-          z: 1.2,
-          duration: 0.3,
-          overwrite: true,
-        });
-      }
-  
-      hoveredObject = foundHover;
-    }*/
-
-
 
   controls.update();
   renderer.render(scene, camera);
