@@ -25,6 +25,13 @@ function adjustCanvas() {
   canvas.style.height = `calc(100vh - ${headerHeight}px)`;
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  const headerLogo = document.getElementById("header-logo");
+  if (headerLogo) {
+    headerLogo.style.opacity = "0"; // Dölj logotypen initialt
+  }
+});
+
 // Kör funktionen vid start och när fönstret ändras
 window.addEventListener("resize", adjustCanvas);
 adjustCanvas();
@@ -72,8 +79,8 @@ controls.update();
 
 
 // Ljus
-scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
-const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444444,2));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
 dirLight.position.set(10, 10, 5);
 dirLight.castShadow = true;
 dirLight.receiveShadow = true; 
@@ -95,7 +102,7 @@ tex.colorSpace = THREE.SRGBColorSpace;
 
 // Video
 const VideoElement = document.createElement("video");
-VideoElement.src = "/videos/Showreel_15.mp4";
+VideoElement.src = "/public/videos/Showreel_15sek.mp4";
 VideoElement.loop = true;
 VideoElement.muted = true;
 VideoElement.playsInline = true;
@@ -143,9 +150,8 @@ const hoverableNames = [
 
 loader.load("/models/Scene_34.glb", (glb) => {
   const model = glb.scene;
-  glb.scene.scale.set(1,1,1);
+  glb.scene.scale.set(1, 1, 1);
   scene.add(model);
-  
 
   model.traverse((child) => {
     if (child.isMesh) {
@@ -155,9 +161,9 @@ loader.load("/models/Scene_34.glb", (glb) => {
         map: child.material.map || null,
         envMap: environmentMap,
         envMapIntensity: 1,
-        color: 0xffffff,
+        color: 0xe0e0e0,
         metalness: 0,
-        roughness: 0.2,
+        roughness: 0.5,
         side: THREE.DoubleSide,
       });
 
@@ -174,7 +180,6 @@ loader.load("/models/Scene_34.glb", (glb) => {
       }
 
       if (clickableNames.includes(child.name)) {
-        // Spara parent-gruppen, inte bara child
         let top = child;
         while (top.parent && top.parent.type !== "Scene") {
           top = top.parent;
@@ -185,9 +190,25 @@ loader.load("/models/Scene_34.glb", (glb) => {
 
         console.log("✅ Klickbar:", top.name);
       }
-
     }
   });
+
+  const overlay = document.getElementById("white-overlay");
+  const headerLogo = document.getElementById("header-logo");
+  
+  if (overlay) {
+    overlay.style.opacity = "0"; // Gör overlay osynlig
+    setTimeout(() => {
+      overlay.remove(); // Ta bort overlay helt
+      if (headerLogo) {
+        headerLogo.style.opacity = "1"; // Visa logotypen
+        headerLogo.style.visibility = "visible"; // Gör logotypen synlig
+      }
+    }, 500); // Vänta tills övergången är klar
+  }
+
+  console.log("✅ Modellen är färdigladdad och tillagd i scenen!");
+
 
   if (glb.animations.length > 0) {
     mixer = new THREE.AnimationMixer(model);
@@ -208,6 +229,7 @@ window.addEventListener("mousemove", (event) => {
   mouse.y = -(event.clientY / sizes.height) * 2 + 1;
   //console.log("Musrörelse på canvas: ", mouse.x, mouse.y);
 });
+
 
 canvas.addEventListener("click", () => {
   const intersects = raycaster.intersectObjects(scene.children, true);
@@ -276,7 +298,16 @@ document.getElementById("close-modal").addEventListener("click", () => {
   modal.classList.add("hidden");
 });
 
-
+function scaleGroup(groupNames, operation) {
+  groupNames.forEach((name) => {
+    const object = scene.getObjectByName(name);
+    if (object) {
+      scaleObject(object, operation);
+    } else {
+      console.warn(`❌ Objekt med namnet "${name}" hittades inte i scenen.`);
+    }
+  });
+}
 //let hoveredObject = null; // Track the currently hovered object
 
 canvas.addEventListener("mousemove", (event) => {
@@ -288,69 +319,17 @@ canvas.addEventListener("mousemove", (event) => {
   for (let intersect of intersects) {
     const name = intersect.object.name;
 
-    console.log("Hovrar över objekt:", name);
-
     if (name === "Screen" || name === "Screen_body") {
       foundHover = intersect.object;
-
-      // Hämta både Screen och Screen_body
-      const screen = scene.getObjectByName("Screen");
-      const screenBody = scene.getObjectByName("Screen_body");
-
-      // Skala båda objekten
-      gsap.to(screen.scale, {
-        x: 1.2,
-        y: 1.2,
-        z: 1.2,
-        duration: 0.3,
-        overwrite: true,
-      });
-
-      gsap.to(screenBody.scale, {
-        x: 1.2,
-        y: 1.2,
-        z: 1.2,
-        duration: 0.3,
-        overwrite: true,
-      });
-      
+      scaleGroup(["Screen", "Screen_body"], "zoom");
     } else if (name === "Hickap" || name === "Hickap_glass") {
       foundHover = intersect.object;
-
-      // Hämta både Screen och Screen_body
-      const hickap = scene.getObjectByName("Hickap");
-      const hickapGlass = scene.getObjectByName("Hickap_glass");
-
-      // Skala båda objekten
-      gsap.to(hickap.scale, {
-        x: 1.2,
-        y: 1.2,
-        z: 1.2,
-        duration: 0.3,
-        overwrite: true,
-      });
-
-      gsap.to(hickapGlass.scale, {
-        x: 1.2,
-        y: 1.2,
-        z: 1.2,
-        duration: 0.3,
-        overwrite: true,
-      });
-    
+      scaleGroup(["Hickap", "Hickap_glass"], "zoom");
     } else if (name === "Monster" || name === "Monster_glass") {
       foundHover = intersect.object;
-      const monster = scene.getObjectByName("Monster");
-      const monsterGlass = scene.getObjectByName("Monster_glass");
-
-      scaleObject(monsterGlass, "zoom");
-
-      scaleObject(monster, "zoom");
-    
-    }else if (hoverableNames.includes(name)) {
-      // Generell skalning för andra objekt
+      scaleGroup(["Monster", "Monster_glass"], "zoom");
+    } else if (hoverableNames.includes(name)) {
       foundHover = intersect.object;
-
       scaleObject(foundHover, "zoom");
     }
 
@@ -358,22 +337,22 @@ canvas.addEventListener("mousemove", (event) => {
   }
 
   if (hoveredObject !== foundHover) {
-    // Återställ skalan för det tidigare hovrade objektet
     if (hoveredObject) {
       if (hoveredObject.name === "Screen" || hoveredObject.name === "Screen_body") {
-        const screen = scene.getObjectByName("Screen");
-        const screenBody = scene.getObjectByName("Screen_body");
-
-        scaleObject(screen, "reset");
-        scaleObject(screenBody, "reset");
+        scaleGroup(["Screen", "Screen_body"], "reset");
+      } else if (hoveredObject.name === "Hickap" || hoveredObject.name === "Hickap_glass") {
+        scaleGroup(["Hickap", "Hickap_glass"], "reset");
+      } else if (hoveredObject.name === "Monster" || hoveredObject.name === "Monster_glass") {
+        scaleGroup(["Monster", "Monster_glass"], "reset");
       } else {
         scaleObject(hoveredObject, "reset");
       }
     }
 
-    hoveredObject = foundHover; // Uppdatera det aktuella hovrade objektet
+    hoveredObject = foundHover;
   }
 });
+
 
 function scaleObject(object, operation) {
   if (object) {

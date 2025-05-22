@@ -224,7 +224,7 @@
   .sh_media8 {
     grid-column: 1; 
     grid-row: 13; 
-    margin-top: -50%;
+    margin-top: -80%;
   }
 
   .sh_video6 {
@@ -250,7 +250,7 @@
   .ly_video2 {
     grid-column: 1; /* Samma kolumn som den övre bilden */
     grid-row: 3;
-   margin-top: -50%;
+   margin-top: -60%;
     size: auto;
     height:fit-content;
   }
@@ -269,7 +269,12 @@
     margin-top: 50%;
   }
 
-
+  .ly_video3 {
+    grid-column: 1; 
+    grid-row: 5;
+    margin-top: -30%;
+    size: auto;
+  }
 
 
   nav ul {
