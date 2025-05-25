@@ -292,23 +292,23 @@ canvas.addEventListener("click", () => {
         // Hantera modaler för andra objekt
 
       if (["Monster", "Monster_glass"].includes(name)) {
-        modalSrc = pageSrc + "Monster.html";
+        modalSrc = "Monster.html";
       } else if (name === "Chair") {
-        modalSrc = pageSrc + "Chair.html";
+        modalSrc =  "Chair.html";
       } else if (name === "Suitcase") {
-        modalSrc = pageSrc + "Mimic.html";
+        modalSrc = "Mimic.html";
       } else if (name === "Screen") {
-        modalSrc = pageSrc + "Showreel.html";
+        modalSrc = "Showreel.html";
       } else if (name === "Headphones_2") {
-        modalSrc = pageSrc + "Headphones.html";
+        modalSrc = "Headphones.html";
       } else if (["Hickap", "Hickap_glass"].includes(name)) {
-        modalSrc = pageSrc + "Hickap.html";
+        modalSrc =  "Hickap.html";
       } else if (["Cube032", "Cube033"].includes(name)) {
-        modalSrc = pageSrc + "CV.html";
+        modalSrc = "CV.html";
       }else if (["Filmic"].includes(name)) {
-        modalSrc = pageSrc + "Filmic.html";
+        modalSrc = "Filmic.html";
       }else if (["Lynk"].includes(name)) {
-        modalSrc = pageSrc + "Lynk.html";
+        modalSrc = "Lynk.html";
       }
 
       if (modalSrc) {
