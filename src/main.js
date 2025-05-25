@@ -1,10 +1,14 @@
 // Importer
-import "./style.scss";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { gsap } from "gsap";
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+
+const pageSrc = "public/";
 
 // Canvas & Renderer
 const canvas = document.querySelector("#experience-canvas");
@@ -15,6 +19,10 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setClearColor(0x000000, 0); // Gör bakgrunden transparent
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;       // <= justera vid behov
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.physicallyCorrectLights = true;   // mer verkliga ljusnivåer
 
 // Funktion för att justera canvasens position och storlek
 function adjustCanvas() {
@@ -28,7 +36,8 @@ function adjustCanvas() {
 document.addEventListener("DOMContentLoaded", () => {
   const headerLogo = document.getElementById("header-logo");
   if (headerLogo) {
-    headerLogo.style.opacity = "0"; // Dölj logotypen initialt
+    headerLogo.style.opacity = "1"; // Gör logotypen synlig
+    headerLogo.style.visibility = "visible"; // Se till att den inte är dold
   }
 });
 
@@ -79,14 +88,42 @@ controls.update();
 
 
 // Ljus
-scene.add(new THREE.HemisphereLight(0xffffff, 0x444444,2));
+
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));   // svagt fill-ljus
+
 const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-dirLight.position.set(10, 10, 5);
+dirLight.position.set(5, 10, 5);
 dirLight.castShadow = true;
-dirLight.receiveShadow = true; 
-dirLight.shadow.mapSize.set(512, 512);
+dirLight.shadow.mapSize.set(1024, 1024);            // skarpare skugga
+dirLight.shadow.bias = -0.001;
+dirLight.shadow.camera.near  = 1;
+dirLight.shadow.camera.far   = 40;
+dirLight.shadow.camera.left  = -12;
+dirLight.shadow.camera.right =  12;
+dirLight.shadow.camera.top   =  12;
+dirLight.shadow.camera.bottom= -12;
 dirLight.shadow.bias = -0.005;
 scene.add(dirLight);
+
+/* ----------  BLOOM-KOMPOSITOR  ---------- */
+const renderScene = new RenderPass(scene, camera);
+
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.2,    // strength  (0.3–0.5 brukar se naturligt ut)
+  0.2,     // radius    (hur mjukt)
+  0.9      // threshold (vilka pixlar som börjar glöda; 0.9=de allra ljusaste)
+);
+
+const composer = new EffectComposer(renderer);
+composer.addPass(renderScene);
+composer.addPass(bloomPass);
+
+/* (valfritt) Rim-ljus bakifrån för kantljus */
+const rimLight = new THREE.DirectionalLight(0xffffff, 0.5);
+rimLight.position.set(-4, 6, -6);
+scene.add(rimLight);
 
 // Miljöbakgrund
 const environmentMap = new THREE.CubeTextureLoader()
@@ -173,7 +210,6 @@ loader.load("/models/Scene_34.glb", (glb) => {
           transmission: 1,
           roughness: 0,
           metalness: 0,
-          ior: 1.5,
           thickness: 0.01,
           envMapIntensity: 1,
         });
@@ -194,18 +230,20 @@ loader.load("/models/Scene_34.glb", (glb) => {
   });
 
   const overlay = document.getElementById("white-overlay");
-  const headerLogo = document.getElementById("header-logo");
-  
   if (overlay) {
     overlay.style.opacity = "0"; // Gör overlay osynlig
     setTimeout(() => {
       overlay.remove(); // Ta bort overlay helt
-      if (headerLogo) {
-        headerLogo.style.opacity = "1"; // Visa logotypen
-        headerLogo.style.visibility = "visible"; // Gör logotypen synlig
-      }
     }, 500); // Vänta tills övergången är klar
   }
+  const headerLogo = document.getElementById("header-logo");
+console.log("Header logo element:", headerLogo);
+
+if (headerLogo) {
+  console.log("Visar logotypen...");
+  headerLogo.style.opacity = "1";
+  headerLogo.style.visibility = "visible";
+}
 
   console.log("✅ Modellen är färdigladdad och tillagd i scenen!");
 
@@ -254,25 +292,24 @@ canvas.addEventListener("click", () => {
         // Hantera modaler för andra objekt
 
       if (["Monster", "Monster_glass"].includes(name)) {
-        modalSrc = "/src/Monster.html";
+        modalSrc = pageSrc + "Monster.html";
       } else if (name === "Chair") {
-        modalSrc = "/src/Chair.html";
+        modalSrc = pageSrc + "Chair.html";
       } else if (name === "Suitcase") {
-        modalSrc = "/src/Mimic.html";
+        modalSrc = pageSrc + "Mimic.html";
       } else if (name === "Screen") {
-        modalSrc = "/src/Showreel.html";
+        modalSrc = pageSrc + "Showreel.html";
       } else if (name === "Headphones_2") {
-        modalSrc = "/src/Headphones.html";
+        modalSrc = pageSrc + "Headphones.html";
       } else if (["Hickap", "Hickap_glass"].includes(name)) {
-        modalSrc = "/src/Hickap.html";
+        modalSrc = pageSrc + "Hickap.html";
       } else if (["Cube032", "Cube033"].includes(name)) {
-        modalSrc = "/src/CV.html";
+        modalSrc = pageSrc + "CV.html";
       }else if (["Filmic"].includes(name)) {
-        modalSrc = "/src/Filmic.html";
+        modalSrc = pageSrc + "Filmic.html";
       }else if (["Lynk"].includes(name)) {
-        modalSrc = "/src/Lynk.html";
+        modalSrc = pageSrc + "Lynk.html";
       }
-      
 
       if (modalSrc) {
         openModal(modalSrc);
@@ -385,10 +422,13 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
   renderer.setSize(sizes.width, sizes.height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
 });
 
 // Render-loop
 const clock = new THREE.Clock();
+
 
 function animate() {
   requestAnimationFrame(animate);
@@ -396,6 +436,9 @@ function animate() {
   const delta = clock.getDelta();
   if (mixer) mixer.update(delta);
   
+  
+
+
    // Uppdatera videoteksturen
    if (VideoTexture) VideoTexture.needsUpdate = true;
 
@@ -406,7 +449,7 @@ function animate() {
   const intersects = raycaster.intersectObjects(scene.children, true);
 
   controls.update();
-  renderer.render(scene, camera);
+  composer.render();
 }
 
 
