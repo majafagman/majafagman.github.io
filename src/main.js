@@ -139,7 +139,7 @@ tex.colorSpace = THREE.SRGBColorSpace;
 
 // Video
 const VideoElement = document.createElement("video");
-VideoElement.src = "/public/videos/Showreel_15sek.mp4";
+VideoElement.src = "/videos/Showreel_15sek.mp4";
 VideoElement.loop = true;
 VideoElement.muted = true;
 VideoElement.playsInline = true;
